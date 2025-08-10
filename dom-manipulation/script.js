@@ -9,8 +9,8 @@ let quotes = [
 const quoteDisplay = document.getElementById("quoteDisplay");
 const newQuoteBtn = document.getElementById("newQuote");
 
-// Function to Show Random Quote
-function showRandomQuote() {
+// Function to Display Random Quote
+function displayRandomQuote() {
   if (quotes.length === 0) {
     quoteDisplay.textContent = "No quotes available.";
     return;
@@ -39,7 +39,7 @@ function addQuote() {
 }
 
 // Event Listener for 'Show New Quote' Button
-newQuoteBtn.addEventListener("click", showRandomQuote);
+newQuoteBtn.addEventListener("click", displayRandomQuote);
 
 // Show an initial quote on page load
-showRandomQuote();
+displayRandomQuote();
