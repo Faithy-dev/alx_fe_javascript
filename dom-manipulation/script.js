@@ -52,6 +52,7 @@ async function syncQuotes() {
             });
         }
         console.log('Quotes synced to server successfully.');
+        alert('Quotes synced with server!'); // ✅ Added alert here
     } catch (error) {
         console.error('Error syncing quotes to server:', error);
     }
