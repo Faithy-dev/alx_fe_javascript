@@ -1,86 +1,58 @@
-// script.js
-
-// 1) Quotes array (objects with text and category)
-const quotes = [
-  { text: "The best way to predict the future is to invent it.", category: "Motivation" },
-  { text: "Life is 10% what happens to us and 90% how we react to it.", category: "Life" },
-  { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", category: "Inspiration" }
+// Initial array of quotes
+let quotes = [
+  { text: "The best way to predict the future is to create it.", category: "Inspiration" },
+  { text: "Do not watch the clock. Do what it does. Keep going.", category: "Motivation" },
+  { text: "Life is 10% what happens to us and 90% how we react to it.", category: "Life" }
 ];
 
-// 2) Helper to escape text before inserting with innerHTML (safer)
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+// Select DOM elements
+const quoteDisplay = document.getElementById('quoteDisplay');
+const newQuoteBtn = document.getElementById('newQuote');
+const addQuoteBtn = document.getElementById('addQuoteBtn');
 
-// 3) displayRandomQuote - selects a random quote and updates the DOM using innerHTML
-function displayRandomQuote() {
-  const quoteDisplay = document.getElementById("quoteDisplay");
-  if (!quoteDisplay) return;
-
+// Function to display a random quote
+function showRandomQuote() {
   if (quotes.length === 0) {
-    quoteDisplay.innerHTML = "<em>No quotes available.</em>";
+    quoteDisplay.innerHTML = "<p>No quotes available. Please add some!</p>";
     return;
   }
-
+  
   const randomIndex = Math.floor(Math.random() * quotes.length);
-  const q = quotes[randomIndex];
-
-  // Using innerHTML (grader expects this). We escape user content to reduce injection risk.
+  const { text, category } = quotes[randomIndex];
+  
   quoteDisplay.innerHTML = `
-    <blockquote class="quote-text">"${escapeHtml(q.text)}"</blockquote>
-    <div class="quote-category">— ${escapeHtml(q.category)}</div>
+    <p>"${text}"</p>
+    <p class="category">— ${category}</p>
   `;
 }
 
-// 4) showRandomQuote – wrapper required by grader
-function showRandomQuote() {
-  displayRandomQuote();
-}
-
-// 5) addQuote - validates inputs, pushes new quote object, and updates the DOM (innerHTML)
+// Function to add a new quote dynamically
 function addQuote() {
-  const textInput = document.getElementById("newQuoteText");
-  const categoryInput = document.getElementById("newQuoteCategory");
-  if (!textInput || !categoryInput) return;
-
-  const text = textInput.value.trim();
-  const category = categoryInput.value.trim();
-
-  if (!text || !category) {
-    alert("Please fill in both the quote and category fields.");
+  const newQuoteText = document.getElementById('newQuoteText').value.trim();
+  const newQuoteCategory = document.getElementById('newQuoteCategory').value.trim();
+  
+  if (!newQuoteText || !newQuoteCategory) {
+    alert("Please enter both quote text and category.");
     return;
   }
-
-  // add to array
-  quotes.push({ text, category });
-
-  // show the newly added quote using innerHTML
-  const quoteDisplay = document.getElementById("quoteDisplay");
-  if (quoteDisplay) {
-    quoteDisplay.innerHTML = `
-      <blockquote class="quote-text">"${escapeHtml(text)}"</blockquote>
-      <div class="quote-category">— ${escapeHtml(category)}</div>
-    `;
-  }
-
-  textInput.value = "";
-  categoryInput.value = "";
+  
+  // Add the new quote to the array
+  quotes.push({ text: newQuoteText, category: newQuoteCategory });
+  
+  // Clear the input fields
+  document.getElementById('newQuoteText').value = '';
+  document.getElementById('newQuoteCategory').value = '';
+  
+  // Provide feedback
   alert("Quote added successfully!");
+  
+  // Show the new quote immediately
+  showRandomQuote();
 }
 
-// 6) Wire up event listeners after DOM loads
-document.addEventListener("DOMContentLoaded", () => {
-  const newQuoteBtn = document.getElementById("newQuote"); // "Show New Quote" button
-  const addQuoteBtn = document.getElementById("addQuote"); // "Add Quote" button
+// Event listeners
+newQuoteBtn.addEventListener('click', showRandomQuote);
+addQuoteBtn.addEventListener('click', addQuote);
 
-  if (newQuoteBtn) newQuoteBtn.addEventListener("click", showRandomQuote);
-  if (addQuoteBtn) addQuoteBtn.addEventListener("click", addQuote);
-
-  // initial display
-  displayRandomQuote();
-});
+// Display an initial random quote when the page loads
+document.addEventListener('DOMContentLoaded', showRandomQuote);
