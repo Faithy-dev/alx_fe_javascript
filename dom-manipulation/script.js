@@ -1,62 +1,81 @@
-// Existing global variables
+// Existing quotes array and initialization
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 const quotesContainer = document.getElementById('quotesContainer');
 const categoryFilter = document.getElementById('categoryFilter');
 
-// ✅ Fetch quotes from server (mock API) and update local storage
+// Fetch quotes from server (GET)
 async function fetchQuotesFromServer() {
     try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); 
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); // Mock API
         const data = await response.json();
 
-        // Simulate server quotes structure
-        const serverQuotes = data.slice(0, 5).map(post => ({
-            text: post.title,
-            author: `User ${post.userId}`,
-            category: 'General'
+        // Convert server data into quote objects (simulate categories)
+        const serverQuotes = data.slice(0, 5).map((item, index) => ({
+            text: item.title,
+            author: `Author ${index + 1}`,
+            category: index % 2 === 0 ? 'Motivation' : 'Life'
         }));
 
-        // Merge with local quotes and resolve conflicts (server wins)
-        const mergedQuotes = mergeQuotesWithServer(serverQuotes, quotes);
-        quotes = mergedQuotes;
+        // Merge with local quotes, server takes precedence
+        mergeQuotes(serverQuotes);
 
-        // Save updated quotes to local storage
-        localStorage.setItem('quotes', JSON.stringify(quotes));
-
-        renderQuotes();
-        populateCategories();
-
-        console.log('Quotes synced with server successfully!');
     } catch (error) {
         console.error('Error fetching quotes from server:', error);
     }
 }
 
-// ✅ Merge function (server data takes precedence)
-function mergeQuotesWithServer(serverQuotes, localQuotes) {
-    const combined = [...localQuotes];
+// Merge quotes (server wins on conflict)
+function mergeQuotes(serverQuotes) {
+    const merged = [...quotes];
 
     serverQuotes.forEach(serverQuote => {
-        const exists = combined.some(localQuote => localQuote.text === serverQuote.text);
-        if (!exists) {
-            combined.push(serverQuote);
+        const existingIndex = merged.findIndex(q => q.text === serverQuote.text);
+        if (existingIndex > -1) {
+            merged[existingIndex] = serverQuote; // Server wins
+        } else {
+            merged.push(serverQuote);
         }
     });
 
-    return combined;
+    quotes = merged;
+    localStorage.setItem('quotes', JSON.stringify(quotes));
+    displayQuotes(quotes);
+    populateCategories();
 }
 
-// ✅ Call fetch on page load and periodically sync every 30 seconds
-fetchQuotesFromServer();
-setInterval(fetchQuotesFromServer, 30000);
+// POST new quote to server
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quote)
+        });
 
-// ✅ Render quotes to the DOM
-function renderQuotes(filteredCategory = 'all') {
+        const data = await response.json();
+        console.log('Quote posted to server:', data);
+    } catch (error) {
+        console.error('Error posting quote to server:', error);
+    }
+}
+
+// Add quote locally and sync
+function addQuote(text, author, category) {
+    const newQuote = { text, author, category };
+    quotes.push(newQuote);
+    localStorage.setItem('quotes', JSON.stringify(quotes));
+    displayQuotes(quotes);
+    populateCategories();
+
+    // Send to server
+    postQuoteToServer(newQuote);
+}
+
+// Display quotes
+function displayQuotes(filteredQuotes) {
     quotesContainer.innerHTML = '';
-    const filteredQuotes = filteredCategory === 'all'
-        ? quotes
-        : quotes.filter(q => q.category === filteredCategory);
-
     filteredQuotes.forEach(quote => {
         const div = document.createElement('div');
         div.className = 'quote';
@@ -65,39 +84,37 @@ function renderQuotes(filteredCategory = 'all') {
     });
 }
 
-// ✅ Populate category filter dynamically
+// Populate categories dynamically
 function populateCategories() {
     const categories = ['all', ...new Set(quotes.map(q => q.category))];
-    categoryFilter.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    categoryFilter.innerHTML = '';
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        categoryFilter.appendChild(option);
+    });
 
-    // Restore last selected category from localStorage
-    const savedCategory = localStorage.getItem('selectedCategory');
-    if (savedCategory && categories.includes(savedCategory)) {
-        categoryFilter.value = savedCategory;
-        renderQuotes(savedCategory);
+    // Restore last filter
+    const lastFilter = localStorage.getItem('lastFilter') || 'all';
+    categoryFilter.value = lastFilter;
+}
+
+// Filter quotes by category
+function filterQuotes() {
+    const selectedCategory = categoryFilter.value;
+    localStorage.setItem('lastFilter', selectedCategory);
+
+    if (selectedCategory === 'all') {
+        displayQuotes(quotes);
     } else {
-        renderQuotes();
+        displayQuotes(quotes.filter(q => q.category === selectedCategory));
     }
 }
 
-// ✅ Filter quotes on category change
-function filterQuotes() {
-    const selectedCategory = categoryFilter.value;
-    localStorage.setItem('selectedCategory', selectedCategory);
-    renderQuotes(selectedCategory);
-}
-
-// ✅ Add new quote and sync categories
-function addQuote(text, author, category) {
-    const newQuote = { text, author, category };
-    quotes.push(newQuote);
-    localStorage.setItem('quotes', JSON.stringify(quotes));
-    renderQuotes(categoryFilter.value);
-    populateCategories();
-}
-
-// Initial load
+// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    fetchQuotesFromServer();
+    displayQuotes(quotes);
     populateCategories();
-    renderQuotes();
 });
