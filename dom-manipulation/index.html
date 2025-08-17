@@ -5,25 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dynamic Quote Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    #quoteDisplay { font-size: 1.5rem; margin: 20px 0; }
-    .category { color: #666; font-size: 1rem; }
-    .form-container { margin-top: 30px; }
-    select, input, button { margin: 5px; padding: 8px; }
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h1 { text-align: center; }
+    #controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; margin: 12px 0; }
+    #quoteDisplay { text-align: center; font-size: 1.3rem; margin: 16px 0; }
+    .category { color: #666; font-size: 0.95rem; }
+    .form-container { margin-top: 18px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    input, select, button { padding: 8px 10px; }
+    #syncStatus { font-size: 0.9rem; color: #444; }
+    #conflictBar { display: none; background: #fff8e1; border: 1px solid #ffd54f; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    #conflictPanel { display: none; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+    .conflict-item { border-top: 1px dashed #ddd; padding-top: 10px; margin-top: 10px; }
+    .conflict-actions button { margin-right: 8px; }
+    .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 6px; background: #eef; margin-left: 8px; }
   </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
 
   <!-- Category Filter -->
-  <select id="categoryFilter">
-    <option value="all">All Categories</option>
-  </select>
+  <div id="controls">
+    <label for="categoryFilter" style="font-weight:600;">Filter:</label>
+    <select id="categoryFilter">
+      <option value="all">All Categories</option>
+    </select>
+
+    <button id="newQuote">Show New Quote</button>
+    <button id="syncBtn">Sync Now</button>
+    <button id="exportBtn">Export Quotes</button>
+    <input type="file" id="importFile" accept=".json" />
+    <span id="syncStatus" aria-live="polite"></span>
+  </div>
+
+  <div id="conflictBar">
+    <strong>Updates applied from server.</strong>
+    <span id="conflictCount">0</span> conflict(s) auto-resolved (server-wins).
+    <button id="reviewConflictsBtn">Review</button>
+  </div>
 
   <div id="quoteDisplay"></div>
-  <button id="newQuote">Show New Quote</button>
-  <button id="exportBtn">Export Quotes</button>
-  <input type="file" id="importFile" accept=".json" />
+
+  <!-- Conflicts panel (manual resolution) -->
+  <div id="conflictPanel" aria-live="polite">
+    <h3>Resolve Conflicts</h3>
+    <div id="conflictList"></div>
+    <button id="closeConflicts">Close</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
